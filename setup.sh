@@ -182,7 +182,6 @@ fi
 cp /etc/fail2ban/jail.conf /etc/fail2ban/jail.local 2>/dev/null
 
 # 写入 SSH 专用规则 (jail.d)
-# Fail2Ban 会自动检测后端 (通常为 auto/polling/pyinotify) 并读取指定文件
 cat <<EOF > /etc/fail2ban/jail.d/sshd_custom.conf
 [sshd]
 enabled = true
