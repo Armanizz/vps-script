@@ -179,10 +179,10 @@ else
     F2B_MSG="封禁 $F2B_HOURS 小时"
 fi
 
+# 写入配置 (jail.local)
 cp /etc/fail2ban/jail.conf /etc/fail2ban/jail.local 2>/dev/null
 
-# 写入 SSH 专用规则
-# 注意：这里恢复了 logpath，并去掉了 backend = systemd
+# 写入 SSH 专用规则 (jail.d)
 # Fail2Ban 会自动检测后端 (通常为 auto/polling/pyinotify) 并读取指定文件
 cat <<EOF > /etc/fail2ban/jail.d/sshd_custom.conf
 [sshd]
@@ -190,6 +190,7 @@ enabled = true
 port    = $UFW_SSH_PORT
 filter  = sshd
 logpath = /var/log/auth.log
+backend = systemd
 maxretry = $F2B_RETRY
 findtime = $F2B_FINDTIME
 bantime  = $F2B_BANTIME
