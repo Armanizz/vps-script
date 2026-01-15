@@ -212,6 +212,7 @@ fi
 sysctl -p > /dev/null
 echo -e "${GREEN}BBR 已启用。${NC}"
 
+# 重启 SSH 服务以应用更改
 systemctl restart sshd
 
 echo -e "${GREEN}==============================================${NC}"
