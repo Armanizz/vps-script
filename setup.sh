@@ -23,7 +23,7 @@ if [ "$EUID" -ne 0 ]; then
   exit 1
 fi
 
-# 2. 更新系统与安装依赖 (包含 rsyslog)
+# 2. 更新系统与安装依赖
 echo -e "${YELLOW}>> [1/6] 更新系统与安装依赖...${NC}"
 export DEBIAN_FRONTEND=noninteractive
 apt update && apt upgrade -y
@@ -44,7 +44,7 @@ else
 fi
 
 # =======================================================
-# 3. SSH 配置 (Root目录操作)
+# 3. SSH 配置
 # =======================================================
 echo -e "${YELLOW}>> [2/6] 配置 SSH 安全选项...${NC}"
 
@@ -153,7 +153,7 @@ systemctl enable ufw
 echo -e "${GREEN}UFW 防火墙已启用。${NC}"
 
 # =======================================================
-# 6. Fail2Ban (配置 auth.log 读取)
+# 6. Fail2Ban
 # =======================================================
 echo -e "${YELLOW}>> [5/6] 配置 Fail2Ban...${NC}"
 
@@ -200,7 +200,7 @@ systemctl restart fail2ban
 echo -e "${GREEN}Fail2Ban 配置完成: 监听 auth.log, ${F2B_FIND_MIN}分钟内错误 ${F2B_RETRY} 次 -> ${F2B_MSG}。${NC}"
 
 # =======================================================
-# 7. BBR 加速 & 收尾
+# 7. BBR拥塞控制
 # =======================================================
 echo -e "${YELLOW}>> [6/6] 开启 BBR 加速...${NC}"
 
