@@ -220,7 +220,7 @@ echo -e "${GREEN}             系统初始化配置完成！               ${NC}
 echo -e "${GREEN}==============================================${NC}"
 echo -e "1. SSH端口:  $UFW_SSH_PORT"
 echo -e "2. 安全认证: 仅限密钥 (密码已禁用)"
-echo -e "3. NTP同步:  Cloudflare (已校准)"
+echo -e "3. NTP同步:  Cloudflare 已校准"
 echo -e "4. 防火墙:   UFW 已启动"
 echo -e "5. 防爆破:   Fail2Ban 已启动"
 echo -e "${YELLOW}重要提示: 请务必新开一个终端窗口，测试是否能通过密钥成功连接！${NC}"
