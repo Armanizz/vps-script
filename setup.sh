@@ -27,7 +27,6 @@ fi
 echo -e "${YELLOW}>> [1/6] 更新系统与安装依赖...${NC}"
 export DEBIAN_FRONTEND=noninteractive
 apt update && apt upgrade -y
-# 这里加入了 rsyslog
 apt install -y curl wget git vim ufw fail2ban chrony rsyslog
 
 # 关键步骤：立即启动 rsyslog 以生成日志文件，防止 Fail2Ban 报错
