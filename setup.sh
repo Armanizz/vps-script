@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # ==============================================================================
-# 脚本名称: Debian 12 VPS 初始化全能脚本 (完美最终版)
+# 脚本名称: Debian 12 VPS 初始化全能脚本
 # 功能: SSH加固 / UFW / Fail2Ban(联动UFW+读auth.log) / BBR / NTP / 日志权限
 # ==============================================================================
 
@@ -182,9 +182,10 @@ else
     F2B_MSG="封禁 $F2B_HOURS 小时"
 fi
 
+# 写入配置 (jail.local)
 cp /etc/fail2ban/jail.conf /etc/fail2ban/jail.local 2>/dev/null
 
-# 写入配置 (关键修改：加入 banaction = ufw)
+# 写入 SSH 专用规则 (jail.d)
 cat <<EOF > /etc/fail2ban/jail.d/sshd_custom.conf
 [sshd]
 enabled = true
@@ -199,10 +200,10 @@ EOF
 
 systemctl enable fail2ban
 systemctl restart fail2ban
-echo -e "${GREEN}Fail2Ban 配置完成: 联动UFW, 监听auth.log。${NC}"
+echo -e "${GREEN}Fail2Ban 配置完成: ${F2B_FIND_MIN}分钟内错误 ${F2B_RETRY} 次 -> ${F2B_MSG}。${NC}"
 
 # =======================================================
-# 8. BBR 加速 & 收尾
+# 8. BBR 拥塞控制
 # =======================================================
 echo -e "${YELLOW}>> [Final] 开启 BBR 加速与重启服务...${NC}"
 
@@ -215,15 +216,17 @@ fi
 sysctl -p > /dev/null
 echo -e "${GREEN}BBR 已启用。${NC}"
 
+# 重启 SSH 服务以应用更改
 systemctl restart sshd
 
 echo -e "${GREEN}==============================================${NC}"
-echo -e "${GREEN}           系统初始化配置完成！               ${NC}"
+echo -e "${GREEN}             系统初始化配置完成！               ${NC}"
 echo -e "${GREEN}==============================================${NC}"
 echo -e "1. SSH端口:  $UFW_SSH_PORT"
 echo -e "2. 认证方式: 仅限密钥 (密码已禁用)"
-echo -e "3. 日志安全: auth.log (权限 640)"
+echo -e "3. NTP同步:  Cloudflare (已校准)"
 echo -e "4. 防火墙:   UFW 已启动"
-echo -e "5. 防爆破:   Fail2Ban (联动 UFW)"
+echo -e "5. 防爆破:   Fail2Ban 已启动"
 echo -e "6. BBR:      已开启"
-echo -e "${YELLOW}请务必新开一个终端窗口，测试是否能通过密钥成功连接！${NC}"
+echo -e "${YELLOW}重要提示: 请务必新开一个终端窗口，测试是否能通过密钥成功连接！${NC}"
+echo -e "${YELLOW}确认连接无误后，再关闭当前窗口。${NC}"
