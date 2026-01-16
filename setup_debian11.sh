@@ -82,13 +82,9 @@ fi
 
 mkdir -p /root/.ssh
 chmod 700 /root/.ssh
-if ! grep -q "$FINAL_SSH_KEY" /root/.ssh/authorized_keys 2>/dev/null; then
-    echo "$FINAL_SSH_KEY" >> /root/.ssh/authorized_keys
-    chmod 600 /root/.ssh/authorized_keys
-    echo -e "${GREEN}公钥已成功写入。${NC}"
-else
-    echo -e "${GREEN}公钥已存在，跳过添加。${NC}"
-fi
+echo "$FINAL_SSH_KEY" > /root/.ssh/authorized_keys
+chmod 600 /root/.ssh/authorized_keys
+echo -e "${GREEN}SSH 公钥已添加。${NC}"
 
 # 4.2 修改 SSHD 配置文件
 cp /etc/ssh/sshd_config /etc/ssh/sshd_config.bak.$(date +%F_%T)
