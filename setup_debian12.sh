@@ -24,7 +24,7 @@ if [ "$EUID" -ne 0 ]; then
 fi
 
 # 2. 更新系统与安装依赖
-echo -e "${YELLOW}>> [1/6] 更新系统与安装依赖...${NC}"
+echo -e "${YELLOW}>> [1/7] 更新系统与安装依赖...${NC}"
 export DEBIAN_FRONTEND=noninteractive
 apt update && apt upgrade -y
 apt install -y curl wget git vim ufw fail2ban chrony rsyslog
@@ -32,7 +32,7 @@ apt install -y curl wget git vim ufw fail2ban chrony rsyslog
 # =======================================================
 # 3. 日志环境初始化
 # =======================================================
-echo -e "${YELLOW}>> [2/6] 初始化系统日志环境...${NC}"
+echo -e "${YELLOW}>> [2/7] 初始化系统日志环境...${NC}"
 
 # 1. 确保 Rsyslog 开机自启并立即运行
 systemctl enable --now rsyslog
@@ -55,7 +55,7 @@ echo -e "${GREEN}日志权限已修正为 640 (root:adm)。${NC}"
 # =======================================================
 # 4. SSH 配置
 # =======================================================
-echo -e "${YELLOW}>> [3/6] 配置 SSH 安全选项...${NC}"
+echo -e "${YELLOW}>> [3/7] 配置 SSH 安全选项...${NC}"
 
 # 4.1 写入公钥
 mkdir -p /root/.ssh
@@ -98,7 +98,7 @@ echo -e "${GREEN}SSH 安全配置已更新。${NC}"
 # =======================================================
 # 5. NTP 时间同步 (Chrony + Cloudflare)
 # =======================================================
-echo -e "${YELLOW}>> [4/6] 配置 NTP 时间同步 (Cloudflare)...${NC}"
+echo -e "${YELLOW}>> [4/7] 配置 NTP 时间同步 (Cloudflare)...${NC}"
 cp /etc/chrony/chrony.conf /etc/chrony/chrony.conf.bak 2>/dev/null
 
 sed -i '/^pool/d' /etc/chrony/chrony.conf
@@ -113,7 +113,7 @@ echo -e "${GREEN}Chrony 已配置并同步。${NC}"
 # =======================================================
 # 6. UFW 防火墙
 # =======================================================
-echo -e "${YELLOW}>> [5/6] 配置 UFW 防火墙 (交互)...${NC}"
+echo -e "${YELLOW}>> [5/7] 配置 UFW 防火墙 (交互)...${NC}"
 
 CURRENT_SSH_PORT=$(grep "^Port" /etc/ssh/sshd_config | head -n 1 | awk '{print $2}')
 [ -z "$CURRENT_SSH_PORT" ] && CURRENT_SSH_PORT=22
@@ -158,7 +158,7 @@ echo -e "${GREEN}UFW 防火墙已启用。${NC}"
 # =======================================================
 # 7. Fail2Ban
 # =======================================================
-echo -e "${YELLOW}>> [6/6] 配置 Fail2Ban...${NC}"
+echo -e "${YELLOW}>> [6/7] 配置 Fail2Ban...${NC}"
 
 echo -e "${CYAN}--- Fail2Ban 参数设置 ---${NC}"
 
@@ -205,7 +205,7 @@ echo -e "${GREEN}Fail2Ban 配置完成: ${F2B_FIND_MIN}分钟内错误 ${F2B_RET
 # =======================================================
 # 8. BBR 拥塞控制
 # =======================================================
-echo -e "${YELLOW}>> [Final] 开启 BBR 加速与重启服务...${NC}"
+echo -e "${YELLOW}>> [7/7] 开启 BBR 加速与重启服务...${NC}"
 
 if ! grep -q "net.core.default_qdisc=fq" /etc/sysctl.conf; then
     echo "net.core.default_qdisc=fq" >> /etc/sysctl.conf
