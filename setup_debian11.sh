@@ -15,7 +15,7 @@ NC='\033[0m'
 # 默认的 SSH 公钥
 DEFAULT_SSH_KEY="ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINvyH3RGNA/b9OuBLnHIpzmFIOQuWSpSt2bdgyPjoujE admin@gmail.com"
 
-echo -e "${GREEN}=== 开始执行 Debian 11 初始化配置 (Fail2Ban + UFW Link) ===${NC}"
+echo -e "${GREEN}=== 开始执行 Debian 11 初始化配置 ===${NC}"
 
 # 1. 权限检查
 if [ "$EUID" -ne 0 ]; then
