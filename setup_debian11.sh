@@ -87,7 +87,7 @@ if ! grep -q "$FINAL_SSH_KEY" /root/.ssh/authorized_keys 2>/dev/null; then
     chmod 600 /root/.ssh/authorized_keys
     echo -e "${GREEN}公钥已成功写入。${NC}"
 else
-    echo -e "${GREEN}默认公钥已存在，跳过添加。${NC}"
+    echo -e "${GREEN}公钥已存在，跳过添加。${NC}"
 fi
 
 # 4.2 修改 SSHD 配置文件
