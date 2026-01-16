@@ -24,7 +24,7 @@ if [ "$EUID" -ne 0 ]; then
 fi
 
 # 2. 更新系统与安装依赖
-echo -e "${YELLOW}>> [1/6] 更新系统与安装依赖...${NC}"
+echo -e "${YELLOW}>> [1/7] 更新系统与安装依赖...${NC}"
 export DEBIAN_FRONTEND=noninteractive
 # Debian 11 有时需先更新列表才能正确安装新包
 apt update -y && apt upgrade -y
@@ -34,7 +34,7 @@ apt install -y curl wget git vim ufw fail2ban chrony rsyslog net-tools dnsutils
 # =======================================================
 # 3. 日志环境初始化
 # =======================================================
-echo -e "${YELLOW}>> [2/6] 初始化系统日志环境...${NC}"
+echo -e "${YELLOW}>> [2/7] 初始化系统日志环境...${NC}"
 
 # 1. 确保 Rsyslog 开机自启并立即运行
 systemctl enable --now rsyslog
@@ -59,7 +59,7 @@ echo -e "${GREEN}日志权限已修正为 640 (root:adm) 并重启日志服务�
 # =======================================================
 # 4. SSH 配置
 # =======================================================
-echo -e "${YELLOW}>> [3/6] 配置 SSH 安全选项...${NC}"
+echo -e "${YELLOW}>> [3/7] 配置 SSH 安全选项...${NC}"
 
 # 4.1 写入公钥
 mkdir -p /root/.ssh
@@ -101,7 +101,7 @@ echo -e "${GREEN}SSH 安全配置已更新。${NC}"
 # =======================================================
 # 5. NTP 时间同步 (Chrony + Cloudflare)
 # =======================================================
-echo -e "${YELLOW}>> [4/6] 配置 NTP 时间同步 (Cloudflare)...${NC}"
+echo -e "${YELLOW}>> [4/7] 配置 NTP 时间同步 (Cloudflare)...${NC}"
 # 备份配置
 [ -f /etc/chrony/chrony.conf ] && cp /etc/chrony/chrony.conf /etc/chrony/chrony.conf.bak 2>/dev/null
 
@@ -122,7 +122,7 @@ echo -e "${GREEN}Chrony 已配置。${NC}"
 # =======================================================
 # 6. UFW 防火墙
 # =======================================================
-echo -e "${YELLOW}>> [5/6] 配置 UFW 防火墙 (交互)...${NC}"
+echo -e "${YELLOW}>> [5/7] 配置 UFW 防火墙 (交互)...${NC}"
 
 # 智能获取端口，处理可能的 Include 导致的获取失败情况，增加容错
 CURRENT_SSH_PORT=$(netstat -tuln | grep sshd | head -n 1 | awk '{print $4}' | awk -F: '{print $NF}')
@@ -171,7 +171,7 @@ echo -e "${GREEN}UFW 防火墙已启用。${NC}"
 # =======================================================
 # 7. Fail2Ban
 # =======================================================
-echo -e "${YELLOW}>> [6/6] 配置 Fail2Ban...${NC}"
+echo -e "${YELLOW}>> [6/7] 配置 Fail2Ban...${NC}"
 
 echo -e "${CYAN}--- Fail2Ban 参数设置 ---${NC}"
 
@@ -220,7 +220,7 @@ echo -e "${GREEN}Fail2Ban 配置完成: ${F2B_FIND_MIN}分钟内错误 ${F2B_RET
 # =======================================================
 # 8. BBR 拥塞控制
 # =======================================================
-echo -e "${YELLOW}>> [Final] 开启 BBR 加速与重启服务...${NC}"
+echo -e "${YELLOW}>> [7/7] 开启 BBR 加速与重启服务...${NC}"
 
 if ! grep -q "net.core.default_qdisc=fq" /etc/sysctl.conf; then
     echo "net.core.default_qdisc=fq" >> /etc/sysctl.conf
@@ -240,8 +240,8 @@ echo -e "${GREEN}==============================================${NC}"
 echo -e "1. SSH端口:  $UFW_SSH_PORT"
 echo -e "2. 认证方式: 仅限密钥 (密码已禁用)"
 echo -e "3. NTP同步:  Cloudflare"
-echo -e "4. 防火墙:   UFW 已启动 (状态: Active)"
-echo -e "5. 防爆破:   Fail2Ban 已启动 (模式: polling)"
+echo -e "4. 防火墙:   UFW 已启动"
+echo -e "5. 防爆破:   Fail2Ban 已启动"
 echo -e "6. BBR:      已开启"
 echo -e "${YELLOW}重要提示: 请务必新开一个终端窗口，测试是否能通过密钥成功连接！${NC}"
 echo -e "${YELLOW}确认连接无误后，再关闭当前窗口。${NC}"
