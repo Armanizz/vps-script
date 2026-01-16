@@ -15,7 +15,7 @@ NC='\033[0m'
 # 默认的 SSH 公钥
 DEFAULT_SSH_KEY="ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINvyH3RGNA/b9OuBLnHIpzmFIOQuWSpSt2bdgyPjoujE admin@gmail.com"
 
-echo -e "${GREEN}=== 开始执行 Debian 11 初始化配置 ===${NC}"
+echo -e "${GREEN}=== 开始执行 Debian 12 初始化配置 ===${NC}"
 
 # 1. 权限检查
 if [ "$EUID" -ne 0 ]; then
@@ -58,14 +58,32 @@ echo -e "${GREEN}日志权限已修正为 640 (root:adm)。${NC}"
 echo -e "${YELLOW}>> [3/7] 配置 SSH 安全选项...${NC}"
 
 # 4.1 写入公钥
+echo -e "${CYAN}请设置 SSH 登录公钥:${NC}"
+echo -e "请直接粘贴您的公钥字符串 (以 ssh-xxx 开头)"
+read -p "请输入公钥 (直接回车则使用内置默认公钥): " INPUT_SSH_KEY
+
+if [ -z "$INPUT_SSH_KEY" ]; then
+    FINAL_SSH_KEY="$DEFAULT_SSH_KEY"
+    echo -e "${GREEN}未检测到输入，将使用默认公钥。${NC}"
+else
+    FINAL_SSH_KEY="$INPUT_SSH_KEY"
+    echo -e "${GREEN}已捕获自定义公钥。${NC}"
+fi
+
+# 简单验证一下 key 格式是否看起来像个 key (防止误操作输入太短的字符)
+if [[ ${#FINAL_SSH_KEY} -lt 20 ]]; then
+    echo -e "${RED}错误：公钥格式不对或太短，请检查输入！脚本已停止以防止配置错误。${NC}"
+    exit 1
+fi
+
 mkdir -p /root/.ssh
 chmod 700 /root/.ssh
-if ! grep -q "$MY_SSH_KEY" /root/.ssh/authorized_keys 2>/dev/null; then
-    echo "$MY_SSH_KEY" >> /root/.ssh/authorized_keys
+if ! grep -q "$FINAL_SSH_KEY" /root/.ssh/authorized_keys 2>/dev/null; then
+    echo "$FINAL_SSH_KEY" >> /root/.ssh/authorized_keys
     chmod 600 /root/.ssh/authorized_keys
-    echo -e "${GREEN}指定公钥已添加。${NC}"
+    echo -e "${GREEN}公钥已成功写入。${NC}"
 else
-    echo -e "${GREEN}指定公钥已存在，跳过添加。${NC}"
+    echo -e "${GREEN}默认公钥已存在，跳过添加。${NC}"
 fi
 
 # 4.2 修改 SSHD 配置文件
