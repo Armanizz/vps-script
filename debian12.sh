@@ -238,7 +238,6 @@ enabled = true
 port    = $UFW_SSH_PORT
 filter  = sshd
 logpath = /var/log/auth.log
-banaction = ufw
 maxretry = $F2B_RETRY
 findtime = $F2B_FINDTIME
 bantime  = $F2B_BANTIME
