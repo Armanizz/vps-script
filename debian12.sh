@@ -242,6 +242,7 @@ banaction = ufw
 maxretry = $F2B_RETRY
 findtime = $F2B_FINDTIME
 bantime  = $F2B_BANTIME
+backend = systemd
 EOF
 
 systemctl enable fail2ban
