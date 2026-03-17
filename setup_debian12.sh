@@ -38,20 +38,20 @@ apt install -y curl wget git vim ufw fail2ban chrony rsyslog
 # =======================================================
 echo -e "${YELLOW}>> [2/9] 初始化系统日志环境...${NC}"
 
-# 1. 确保 Rsyslog 开机自启并立即运行
+# 3.1 确保 Rsyslog 开机自启并立即运行
 systemctl enable --now rsyslog
 
-# 2. 等待服务初始化
+# 3.2 等待服务初始化
 sleep 2
 
-# 3. 确保日志文件存在
+# 3.3 确保日志文件存在
 LOG_FILE="/var/log/auth.log"
 if [ ! -f "$LOG_FILE" ]; then
     touch "$LOG_FILE"
     echo -e "${GREEN}已手动创建 auth.log 文件。${NC}"
 fi
 
-# 4. 设置标准安全权限 (640 + root:adm)
+# 3.4 设置标准安全权限 (640 + root:adm)
 chmod 640 "$LOG_FILE"
 chown root:adm "$LOG_FILE"
 echo -e "${GREEN}日志权限已修正为 640 (root:adm)。${NC}"
