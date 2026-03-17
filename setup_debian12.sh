@@ -190,6 +190,7 @@ fi
 
 echo "y" | ufw enable
 systemctl enable ufw
+systemctl restart ufw
 echo -e "${GREEN}UFW 防火墙已启用。${NC}"
 
 # =======================================================
