@@ -35,9 +35,9 @@ fi
 # =======================================================
 echo -e "${YELLOW}>> [1/9] 更新系统与安装依赖...${NC}"
 export DEBIAN_FRONTEND=noninteractive
-apt update
-apt upgrade -y
-apt install -y curl wget git vim ufw fail2ban chrony rsyslog openssh-server python3-systemd
+apt-get update
+apt-get upgrade -y
+apt-get install -y curl wget git vim ufw fail2ban chrony rsyslog openssh-server python3-systemd
 
 # =======================================================
 # 3. 日志环境初始化
