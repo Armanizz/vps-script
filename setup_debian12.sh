@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # ==============================================================================
-# 脚本名称: Debian 12 VPS 初始化全能脚本（重装后专用最终版）
+# 脚本名称: Debian 12 VPS 初始化全能脚本
 # 功能: SSH加固 / UFW / Fail2Ban / BBR / NTP / 日志权限 / 时区 / Swap
 # 说明: 适用于 Debian 12 全新系统安装后的首次初始化
 # ==============================================================================
@@ -37,14 +37,14 @@ echo -e "${YELLOW}>> [1/9] 更新系统与安装依赖...${NC}"
 export DEBIAN_FRONTEND=noninteractive
 apt update
 apt upgrade -y
-apt install -y curl wget git vim ufw fail2ban chrony rsyslog openssh-server
+apt install -y curl wget git vim ufw fail2ban chrony rsyslog openssh-server python3-systemd
 
 # =======================================================
 # 3. 日志环境初始化
 # =======================================================
 echo -e "${YELLOW}>> [2/9] 初始化系统日志环境...${NC}"
 
-systemctl enable --now rsyslog
+systemctl enable --now rsyslog >/dev/null 2>&1
 sleep 1
 
 LOG_FILE="/var/log/auth.log"
@@ -146,7 +146,7 @@ pool pool.ntp.org iburst
 # END VPS INIT NTP
 EOF
 
-systemctl enable chrony
+systemctl enable chrony >/dev/null 2>&1
 systemctl restart chrony
 chronyc makestep || true
 echo -e "${GREEN}Chrony 已配置并同步。${NC}"
@@ -188,7 +188,7 @@ if [ -n "$OTHER_PORTS" ]; then
 fi
 
 ufw --force enable
-systemctl enable ufw
+systemctl enable ufw >/dev/null 2>&1
 systemctl restart ufw
 echo -e "${GREEN}UFW 防火墙已启用。${NC}"
 
@@ -203,9 +203,9 @@ fi
 
 echo -e "${GREEN}SSH 已确认监听在端口 $UFW_SSH_PORT。${NC}"
 
-# 按你的要求：确认新端口已监听后，直接删除旧 SSH 端口规则
+# 确认新端口已监听后，直接删除旧 SSH 端口规则
 if [ "$UFW_SSH_PORT" != "22" ]; then
-    yes | ufw delete allow 22/tcp > /dev/null
+    ufw --force delete allow 22/tcp > /dev/null
     echo -e "${GREEN}旧 SSH 端口 22 的 UFW 规则已删除。${NC}"
 fi
 
@@ -222,17 +222,17 @@ F2B_RETRY=${F2B_RETRY:-3}
 echo -e "发现周期(Find Time): 多少分钟内累计错误算作攻击？"
 read -r -p "分钟数 (回车默认 10 分钟): " F2B_FIND_MIN
 F2B_FIND_MIN=${F2B_FIND_MIN:-10}
-F2B_FINDTIME=$(($F2B_FIND_MIN * 60))
+F2B_FINDTIME=$((F2B_FIND_MIN * 60))
 
 echo -e "封禁时长: 输入 -1 为永久封禁，否则输入小时数。"
 read -r -p "小时数 (回车默认 24 小时): " F2B_HOURS
 F2B_HOURS=${F2B_HOURS:-24}
 
-if [ "$F2B_HOURS" == "-1" ]; then
+if [ "$F2B_HOURS" = "-1" ]; then
     F2B_BANTIME=-1
     F2B_MSG="永久封禁"
 else
-    F2B_BANTIME=$(($F2B_HOURS * 3600))
+    F2B_BANTIME=$((F2B_HOURS * 3600))
     F2B_MSG="封禁 $F2B_HOURS 小时"
 fi
 
@@ -241,16 +241,27 @@ cat > /etc/fail2ban/jail.d/sshd.local <<EOF
 enabled = true
 port = $UFW_SSH_PORT
 filter = sshd
-logpath = /var/log/auth.log
-backend = auto
+backend = systemd
 maxretry = $F2B_RETRY
 findtime = $F2B_FINDTIME
 bantime = $F2B_BANTIME
 EOF
 
-systemctl enable fail2ban
+systemctl enable fail2ban >/dev/null 2>&1
 systemctl restart fail2ban
-fail2ban-client status sshd > /dev/null
+
+if ! systemctl is-active --quiet fail2ban; then
+    echo -e "${RED}错误: Fail2Ban 服务启动失败，下面输出最近日志：${NC}"
+    journalctl -u fail2ban -n 50 --no-pager || true
+    exit 1
+fi
+
+if ! fail2ban-client status 2>/dev/null | grep -q 'sshd'; then
+    echo -e "${RED}错误: Fail2Ban 服务已启动，但 sshd jail 未成功加载。${NC}"
+    journalctl -u fail2ban -n 50 --no-pager || true
+    exit 1
+fi
+
 echo -e "${GREEN}Fail2Ban 配置完成: ${F2B_FIND_MIN}分钟内错误 ${F2B_RETRY} 次 -> ${F2B_MSG}。${NC}"
 
 # =======================================================
