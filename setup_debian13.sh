@@ -3,12 +3,6 @@
 # 脚本名称: Debian 13 VPS 初始化脚本
 # 功能: SSH 加固 / UFW / Fail2Ban / BBR / Chrony / 时区 / Swap
 # 说明: 适用于 Debian 13 (trixie) 全新系统安装后的首次初始化
-# 适配点:
-#   - 使用 apt-get / full-upgrade，适合脚本环境
-#   - SSH 采用 Debian 默认的 sshd_config.d 逻辑
-#   - Fail2Ban 直接读取 systemd journal，不依赖 /var/log/auth.log
-#   - Chrony 不再对公网 NTP 强行使用过低 minpoll/maxpoll
-#   - BBR 写入 /etc/sysctl.d/99-bbr.conf，符合 Debian 13 逻辑
 # =============================================================================
 
 set -Eeuo pipefail
@@ -22,8 +16,8 @@ YELLOW='\033[1;33m'
 CYAN='\033[0;36m'
 NC='\033[0m'
 
-# 可通过环境变量注入默认 SSH 公钥；未设置则要求交互输入
-DEFAULT_SSH_KEY="${DEFAULT_SSH_KEY:-}"
+# 默认的 SSH 公钥
+DEFAULT_SSH_KEY="ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINvyH3RGNA/b9OuBLnHIpzmFIOQuWSpSt2bdgyPjoujE admin@gmail.com"
 
 echo -e "${GREEN}=== 开始执行 Debian 13 初始化配置 ===${NC}"
 
@@ -103,12 +97,10 @@ apt-get install -y --no-install-recommends \
 # =======================================================
 echo -e "${YELLOW}>> [2/9] 初始化 systemd Journal 环境...${NC}"
 
-# Debian 13 更推荐直接让 Fail2Ban 走 systemd journal
 if ! systemctl is-active --quiet systemd-journald; then
   systemctl start systemd-journald
 fi
 
-# 如果系统上恰好已经有传统 auth.log，则顺手修正权限；没有也不强制创建
 if [ -e /var/log/auth.log ]; then
   touch /var/log/auth.log
   chmod 640 /var/log/auth.log
@@ -125,16 +117,14 @@ echo -e "${YELLOW}>> [3/9] 配置 SSH 安全选项...${NC}"
 
 echo -e "${CYAN}请设置 SSH 登录公钥:${NC}"
 echo -e "请直接粘贴您的公钥字符串 (以 ssh-ed25519 / ssh-rsa / ecdsa-sha2-xxx 开头)"
-read -r -p "请输入公钥 (直接回车则使用环境变量 DEFAULT_SSH_KEY): " INPUT_SSH_KEY
+read -r -p "请输入公钥 (直接回车则使用内置默认公钥): " INPUT_SSH_KEY
 
 if [ -n "$INPUT_SSH_KEY" ]; then
   FINAL_SSH_KEY="$INPUT_SSH_KEY"
-elif [ -n "$DEFAULT_SSH_KEY" ]; then
-  FINAL_SSH_KEY="$DEFAULT_SSH_KEY"
-  echo -e "${GREEN}未检测到交互输入，将使用环境变量 DEFAULT_SSH_KEY。${NC}"
+  echo -e "${GREEN}已捕获自定义公钥。${NC}"
 else
-  echo -e "${RED}错误: 未提供 SSH 公钥。为安全起见，脚本终止。${NC}"
-  exit 1
+  FINAL_SSH_KEY="$DEFAULT_SSH_KEY"
+  echo -e "${GREEN}未检测到输入，将使用内置默认公钥。${NC}"
 fi
 
 if ! validate_pubkey "$FINAL_SSH_KEY"; then
@@ -215,7 +205,6 @@ echo -e "${YELLOW}>> [5/9] 配置 NTP 时间同步 (Chrony)...${NC}"
 CHRONY_CONF="/etc/chrony/chrony.conf"
 cp "$CHRONY_CONF" "${CHRONY_CONF}.bak.$(date +%F_%H-%M-%S)"
 
-# 清理旧的自定义块，避免重复追加
 sed -i '/# BEGIN VPS INIT NTP/,/# END VPS INIT NTP/d' "$CHRONY_CONF"
 
 cat >> "$CHRONY_CONF" <<EOF
@@ -247,7 +236,6 @@ ufw --force reset > /dev/null
 ufw default deny incoming
 ufw default allow outgoing
 
-# 先同时放行原 SSH 端口和目标 SSH 端口，避免锁死
 ufw allow "${CURRENT_SSH_PORT}"/tcp comment 'Current SSH Port'
 if [ "$UFW_SSH_PORT" != "$CURRENT_SSH_PORT" ]; then
   ufw allow "${UFW_SSH_PORT}"/tcp comment 'New SSH Port'
@@ -271,7 +259,6 @@ fi
 ufw --force enable
 systemctl enable ufw >/dev/null 2>&1 || true
 
-# 重启 SSH，并确认新端口已监听
 systemctl restart "$SSH_UNIT"
 sleep 1
 
@@ -282,7 +269,6 @@ fi
 
 echo -e "${GREEN}SSH 已确认监听在端口 $UFW_SSH_PORT。${NC}"
 
-# 新端口确认无误后，删除旧 SSH 端口规则
 if [ "$UFW_SSH_PORT" != "$CURRENT_SSH_PORT" ]; then
   ufw --force delete allow "${CURRENT_SSH_PORT}"/tcp > /dev/null || true
   echo -e "${GREEN}旧 SSH 端口 ${CURRENT_SSH_PORT} 的 UFW 规则已删除。${NC}"
