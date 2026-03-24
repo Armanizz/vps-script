@@ -203,9 +203,9 @@ fi
 
 echo -e "${GREEN}SSH 已确认监听在端口 $UFW_SSH_PORT。${NC}"
 
-# 按你的要求：确认新端口已监听后，直接删除旧 SSH 端口规则
+# 确认新端口已监听后，直接删除旧 SSH 端口规则
 if [ "$UFW_SSH_PORT" != "22" ]; then
-    yes | ufw delete allow 22/tcp > /dev/null
+    ufw --force delete allow 22/tcp > /dev/null
     echo -e "${GREEN}旧 SSH 端口 22 的 UFW 规则已删除。${NC}"
 fi
 
