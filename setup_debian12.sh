@@ -237,6 +237,9 @@ else
 fi
 
 cat > /etc/fail2ban/jail.d/sshd.local <<EOF
+[DEFAULT]
+banaction = ufw
+
 [sshd]
 enabled = true
 port = $UFW_SSH_PORT
