@@ -51,9 +51,9 @@ fi
 # =======================================================
 echo -e "${YELLOW}>> [1/9] 更新系统与安装依赖...${NC}"
 export DEBIAN_FRONTEND=noninteractive
-apt update
-apt upgrade -y
-apt install -y curl wget git vim ufw fail2ban chrony rsyslog openssh-server python3-systemd ca-certificates
+apt-get update
+apt-get upgrade -y
+apt-get install -y curl wget git vim ufw fail2ban chrony rsyslog openssh-server python3-systemd ca-certificates
 
 # =======================================================
 # 4. 日志环境初始化
@@ -119,7 +119,6 @@ done
 
 cat > /etc/ssh/sshd_config.d/99-vps-init.conf <<EOF
 Port $FINAL_SSH_PORT
-Protocol 2
 PasswordAuthentication no
 PermitEmptyPasswords no
 ChallengeResponseAuthentication no
@@ -258,15 +257,13 @@ fi
 mkdir -p /etc/fail2ban/jail.d
 
 cat > /etc/fail2ban/jail.d/sshd.local <<EOF
-[DEFAULT]
-banaction = ufw
-
 [sshd]
 enabled = true
 port = $UFW_SSH_PORT
 filter = sshd
 backend = auto
 logpath = /var/log/auth.log
+banaction = ufw
 maxretry = $F2B_RETRY
 findtime = $F2B_FINDTIME
 bantime = $F2B_BANTIME
