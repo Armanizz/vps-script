@@ -130,7 +130,7 @@ echo -e "${GREEN}系统时区已设置为: $SYS_TZ${NC}"
 # =======================================================
 # 6. NTP 时间同步 (Chrony + Cloudflare)
 # =======================================================
-echo -e "${YELLOW}>> [5/9] 配置 NTP 时间同步 (Cloudflare)...${NC}"
+echo -e "${YELLOW}>> [5/9] 配置 NTP 时间同步 (Chrony)...${NC}"
 
 CHRONY_CONF="/etc/chrony/chrony.conf"
 cp "$CHRONY_CONF" "${CHRONY_CONF}.bak.$(date +%F_%H-%M-%S)"
@@ -251,14 +251,26 @@ EOF
 systemctl enable fail2ban >/dev/null 2>&1
 systemctl restart fail2ban
 
+# 先确认服务进程已经起来
 if ! systemctl is-active --quiet fail2ban; then
     echo -e "${RED}错误: Fail2Ban 服务启动失败，下面输出最近日志：${NC}"
     journalctl -u fail2ban -n 50 --no-pager || true
     exit 1
 fi
 
-if ! fail2ban-client status 2>/dev/null | grep -q 'sshd'; then
-    echo -e "${RED}错误: Fail2Ban 服务已启动，但 sshd jail 未成功加载。${NC}"
+# 等待 jail 完成加载，避免刚启动就误判
+F2B_OK=0
+for i in {1..10}; do
+    if fail2ban-client status sshd >/dev/null 2>&1; then
+        F2B_OK=1
+        break
+    fi
+    sleep 1
+done
+
+if [ "$F2B_OK" -ne 1 ]; then
+    echo -e "${RED}错误: Fail2Ban 服务已启动，但 sshd jail 未能在预期时间内完成加载。${NC}"
+    fail2ban-client status || true
     journalctl -u fail2ban -n 50 --no-pager || true
     exit 1
 fi
