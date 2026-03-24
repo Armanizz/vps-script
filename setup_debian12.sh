@@ -242,6 +242,7 @@ enabled = true
 port = $UFW_SSH_PORT
 filter = sshd
 backend = systemd
+journalmatch = _SYSTEMD_UNIT=ssh.service
 maxretry = $F2B_RETRY
 findtime = $F2B_FINDTIME
 bantime = $F2B_BANTIME
