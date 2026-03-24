@@ -159,7 +159,7 @@ sed -i '/# BEGIN VPS INIT NTP/,/# END VPS INIT NTP/d' "$CHRONY_CONF"
 cat >> "$CHRONY_CONF" <<EOF
 
 # BEGIN VPS INIT NTP
-server time.cloudflare.com iburst minpoll 4 maxpoll 4
+server time.cloudflare.com iburst
 pool pool.ntp.org iburst
 # END VPS INIT NTP
 EOF
