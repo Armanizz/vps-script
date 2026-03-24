@@ -117,7 +117,7 @@ while true; do
     fi
 done
 
-cat > /etc/ssh/sshd_config.d/99-vps-init.conf <<EOF
+cat > /etc/ssh/sshd_config.d/00-vps-init.conf <<EOF
 Port $FINAL_SSH_PORT
 PasswordAuthentication no
 PermitEmptyPasswords no
