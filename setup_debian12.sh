@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # ==============================================================================
-# 脚本名称: Debian 12 VPS 初始化全能脚本
+# 脚本名称: Debian 12 VPS 初始化全能脚本（重装后专用最终版）
 # 功能: SSH加固 / UFW / Fail2Ban / BBR / NTP / 日志权限 / 时区 / Swap
 # 说明: 适用于 Debian 12 全新系统安装后的首次初始化
 # ==============================================================================
@@ -203,9 +203,9 @@ fi
 
 echo -e "${GREEN}SSH 已确认监听在端口 $UFW_SSH_PORT。${NC}"
 
-# 确认新端口已监听后，直接删除旧 SSH 端口规则
+# 按你的要求：确认新端口已监听后，直接删除旧 SSH 端口规则
 if [ "$UFW_SSH_PORT" != "22" ]; then
-    ufw --force delete allow 22/tcp > /dev/null
+    yes | ufw delete allow 22/tcp > /dev/null
     echo -e "${GREEN}旧 SSH 端口 22 的 UFW 规则已删除。${NC}"
 fi
 
